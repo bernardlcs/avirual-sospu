@@ -20,7 +20,6 @@ export class LogginService {
   headers = new Headers({'Content-Type': 'application/json'});
   options = new RequestOptions({headers: this.headers});
   loginStatus = false;
-  funcaoUser:any;
 
   login(login, senha) {
 
@@ -35,9 +34,9 @@ export class LogginService {
 
       if (status === 200) {
         this.chave = response.text();
-        localStorage.setItem('token', this.chave );
+        localStorage.setItem('chave', this.chave );
         //console.log(" aqui é o local storage  "+localStorage.getItem('token'));
-        this.headers.set('x-access-token',  this.chave );
+        this.headers.set('chave',  this.chave );
         //console.log("aqui é o header " + this.headers.get('x-access-token'));
         this.loginStatus = true;
 
@@ -53,22 +52,17 @@ export class LogginService {
     });
   }
 
-  funcaoExercida() {
-    return this.http.get('acesso', this.headers.get('x-access-token')).map(result =>{
-      this.funcaoUser = result.text();
-      console.log('o cara é ' + this.funcaoUser);
-      return this.funcaoUser;
-
-    });
+  funcaoUser(){
+    return this.http.get('acesso', this.headers.get('chave'));
   }
 
   loggOut(){
-    this.http.delete('acesso', this.headers.get('x-access-token'));
-    this.headers.set('x-access-token', '' );
+    this.http.delete('acesso', this.headers.get('chave'));
+    this.headers.set('chave', '' );
     this.loginStatus= false;
-    localStorage.removeItem('token');
-    console.log( "aqui é o header apagado " + this.headers.get('x-access-token'));
-    console.log(" aqui é o local storage   apagado "+localStorage.getItem('token'));
+    localStorage.removeItem('chave');
+    console.log( "aqui é o header apagado " + this.headers.get('chave'));
+    console.log(" aqui é o local storage   apagado "+localStorage.getItem('chave'));
 
   }
 
