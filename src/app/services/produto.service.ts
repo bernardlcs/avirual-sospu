@@ -1,65 +1,119 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import {Produto} from "../interfaces/produto";
-import { HttpClient } from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import{ Subscription} from "rxjs/Subscription";
 
 import { Http, Response, Headers, URLSearchParams, RequestOptions} from "@angular/http";
 import {Observable} from "rxjs/Observable";
+import {LogginService} from "./loggin.service";
+import {catchError} from "rxjs/operators";
+import 'rxjs/add/operator/map';
 
 
 @Injectable()
 export class ProdutoService {
 
-  constructor(private router: Router , private http : HttpClient) {
+
+  planos : any;
+  isAddProduto: boolean = false;
+  headers = new Headers({'Content-Type': 'application/json','chave': localStorage.getItem('chave')});
+
+  options = new RequestOptions({headers: this.headers});
+  //eita = new Headers({'chave': localStorage.getItem('token')});
+
+  erro:any;
+
+
+  constructor(private router: Router , private http: HttpClient, private loggin: LogginService, private ptth: Http) {
 
   }
-
-
-
-  produto1 = {nome: 'coputador' , marca: 'dell', cor: 'preto',
-    referencia: '002', quantidade: '3', descricao: 'produto novo muito bom'};
-
-  produto2 = {nome: 'mesaDektop', marca: 'A melhor', cor: 'amarela',
-    referencia: 'b002', quantidade: 10, descricao: 'mesas de alta qualidade'};
-
-  produtoLista = [this.produto1,this.produto2];
- // produtosArrr = Array<Produto>();
-  dataList = [];
-
-  //options = new Headers( {'Content-type': 'aplication/json'});
-
-  isAddProduto: boolean = false;
 
   getIsAddProduto(){
     return this.isAddProduto;
   }
 
 
-  getAllProdutos(): Observable<Produto[]>{
-    return this.http.get<Produto[]>('/listar');
+  // metodo pra retornar os produtos
+  getAllProdutos(): Observable<Array<Produto>>{
+    //let other = this.headers.append('chave',localStorage.getItem('token'));
+    //let chave = localStorage.getItem('token');
+
+    console.log("antes de entrar no htttp   este é o header"+ this.options.headers.get('chave'));
+
+    return this.ptth.get('produtos/listar', this.options)
+      .map(response => {
+        let result = response.status.valueOf();
+        console.log("depois do htttp");
+        console.log(result);
+        if( result === 200){
+          console.log(response.text());
+          return response.json();
+        }
+      });
+
   }
+
+  private extractObject(res: Response): Object {
+    const data: any = res.json();
+    return data || {};
+  }
+
+  private extractData(res: Response) {
+    let body = res.json();
+    return body;
+  }
+
+  private handleErrorObservable (error: Response | any) {
+    console.error(error.message || error);
+    return Observable.throw(error.message || error);
+
+  }
+
+  getDosProduto(): Observable<Produto[]>{
+    console.log("aqui é o headers  "+this.headers.get('chave'));
+    console.log("aqui é o header key"+ this.headers.keys().toString());
+    return this.http.get("produtos/listar", this.headers.get('chave').toString())
+      .map(this.extractData);
+     // .catch(this.handleErrorObservable);
+  }
+
 
   addProduto(nomeProduto,marcaProduto,corProduto,referenciaProduto,quantProduto,descricaoProduto){
 
-   let  body = {nomeProduto: nomeProduto, marcaProduto: marcaProduto, corProduto: corProduto,
-   referenciaProduto: referenciaProduto, quantProduto: quantProduto, descricaoProduto: descricaoProduto};
-
-   console.log(nomeProduto)
-
-   this.produtoLista.push({nome:nomeProduto , marca: marcaProduto, cor: corProduto,
-     referencia: referenciaProduto, quantidade: quantProduto, descricao: descricaoProduto});
-
+    let  body = {nome: nomeProduto, marca: marcaProduto, referencia: referenciaProduto,cor: corProduto,
+                  descricao: descricaoProduto, quantidade: quantProduto};
+   console.log(body);
    this.isAddProduto = true;
+   console.log("chave no addProduto  "+this.options.headers.get('chave'));
 
-    return this.http.post('/produtos', body).subscribe( data => console.log(data));
-
-
-  }
+   this.ptth.post('/produtos', JSON.stringify(body),this.options.headers.get('chave')).map(res => res.valueOf()) }
 
   novoProduto(): void{
     this.isAddProduto = false;
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   deleteProduto(produtoId: string, quantidade: number): Observable<Produto>{
 

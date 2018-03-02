@@ -7,26 +7,27 @@ import {LoginCC} from "../interfaces/credencial";
 import {HttpClient} from "@angular/common/http";
 import {stringify} from "@angular/core/src/util";
 import {jsonpCallbackContext} from "@angular/common/http/src/module";
+import {ConfigService} from "../config-service";
 
 
 
 @Injectable()
 export class LogginService {
 
-  constructor(private http: Http, private chaveH: ChaveTService, private htt: HttpClient) {
+  constructor(private http: Http, private chaveH: ChaveTService, private htt: HttpClient, private urlConfig: ConfigService) {
   }
 
   chave: any;
   headers = new Headers({'Content-Type': 'application/json'});
   options = new RequestOptions({headers: this.headers});
   loginStatus = false;
-  funcaoUser:any;
+  url = this.urlConfig.getUrlService();
 
   login(login, senha) {
 
     console.log(JSON.stringify({login: login, senha: senha}));
 
-    return this.http.post('acesso', JSON.stringify({login: login, senha: senha}), this.options
+    return this.http.post(this.url+'/acesso', JSON.stringify({login: login, senha: senha}), this.options
     ).map((response) => {
 
       let status = response.status.valueOf();
@@ -35,9 +36,9 @@ export class LogginService {
 
       if (status === 200) {
         this.chave = response.text();
-        localStorage.setItem('token', this.chave );
+        localStorage.setItem('chave', this.chave );
         //console.log(" aqui é o local storage  "+localStorage.getItem('token'));
-        this.headers.set('x-access-token',  this.chave );
+        this.headers.set('chave',  this.chave );
         //console.log("aqui é o header " + this.headers.get('x-access-token'));
         this.loginStatus = true;
 
@@ -53,22 +54,17 @@ export class LogginService {
     });
   }
 
-  funcaoExercida() {
-    return this.http.get('acesso', this.headers.get('x-access-token')).map(result =>{
-      this.funcaoUser = result.text();
-      console.log('o cara é ' + this.funcaoUser);
-      return this.funcaoUser;
-
-    });
+  funcaoUser(){
+    return this.http.get('acesso', this.headers.get('chave'));
   }
 
   loggOut(){
-    this.http.delete('acesso', this.headers.get('x-access-token'));
-    this.headers.set('x-access-token', '' );
+    this.http.delete('acesso', this.headers.get('chave'));
+    this.headers.set('chave', '' );
     this.loginStatus= false;
-    localStorage.removeItem('token');
-    console.log( "aqui é o header apagado " + this.headers.get('x-access-token'));
-    console.log(" aqui é o local storage   apagado "+localStorage.getItem('token'));
+    localStorage.removeItem('chave');
+    console.log( "aqui é o header apagado " + this.headers.get('chave'));
+    console.log(" aqui é o local storage   apagado "+localStorage.getItem('chave'));
 
   }
 

@@ -3,6 +3,8 @@ import { Router} from "@angular/router";
 
 import {ProdutoService} from "../services/produto.service";
 import {Produto} from "../interfaces/produto";
+import {Observable} from "rxjs/Observable";
+import {HttpClient} from "@angular/common/http";
 
 @Component({
   selector: 'app-listar-produto',
@@ -11,26 +13,25 @@ import {Produto} from "../interfaces/produto";
 })
 export class ListarProdutoComponent implements OnInit {
 
-  @Input() produtos = Array<Produto>();
-  @Output() borrado: EventEmitter<Produto> = new EventEmitter<Produto>();
-  @Output() modificado: EventEmitter<Produto> = new EventEmitter<Produto>();
+  produtoL: Observable<Produto[]>;
+  produtoo: Produto[];
+  errorMessage: String;
 
-    constructor(private produtoService: ProdutoService, private router: Router) { }
+  constructor(private produtoService: ProdutoService ) {
 
-  produto1 = {nome: 'coputador' , marca: 'dell', cor: 'preto',
-    referencia: '002', quantidade: '3', descricao: 'produto novo muito bom'};
+    }
 
-  produto2 = {nome: 'mesaDektop', marca: 'A melhor', cor: 'amarela',
-    referencia: 'b002', quantidade: 10, descricao: 'mesas de alta qualidade'};
-
-  //minhaListaProduto = [this.produto1, this.produto2];
-  minhaListaProduto = this.produtoService.produtoLista;
+  //minhaListaProduto = this.produtoService.getAllProdutos();
   //minhaListaProduto = this.produtoService.getAllProdutos();
 
 
+  getProduto(){
+
+  }
+  /*
   deletarItem(nome){
 
-    for ( var i =0; i < this.minhaListaProduto.length; i++ ){
+    for ( var i =0; i < this.produtosLista; i++ ){
 
       if( this.minhaListaProduto[i]["nome"] === nome ){
         this.minhaListaProduto.splice(i,1);
@@ -47,11 +48,14 @@ export class ListarProdutoComponent implements OnInit {
     //this.heroService.deleteHero(hero).subscribe();
   }
 
+ */
 
-
-
-
-  ngOnInit() {
+  ngOnInit(): void {
+    this.produtoL = this.produtoService.getDosProduto();
+    this.produtoL.subscribe(
+      produto => this.produtoo = produto,
+      error =>  this.errorMessage = <any>error);
   }
+
 
 }
